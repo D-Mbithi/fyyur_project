@@ -127,7 +127,6 @@ class VenueForm(FlaskForm):
     )
 
 
-
 class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
