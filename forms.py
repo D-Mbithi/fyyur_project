@@ -126,7 +126,6 @@ class VenueForm(FlaskForm):
         'seeking_description'
     )
 
-
 class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
@@ -233,4 +232,3 @@ class ArtistForm(FlaskForm):
     seeking_description = StringField(
             'seeking_description'
      )
-
