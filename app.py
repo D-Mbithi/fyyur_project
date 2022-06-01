@@ -2,7 +2,6 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-from email.policy import default
 import json
 import dateutil.parser
 import babel
@@ -49,8 +48,10 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String)
     show = db.relationship("Show", backref="venue", lazy=True)
 
-    # Done TODO: implement any missing fields, as a database migration using Flask-Migrate
+    def __repr__(self):
+        return f"{self.id}. {self.name}"
 
+    # Done TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = "Artist"
@@ -68,8 +69,10 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String())
     show = db.relationship("Show", backref="artist", lazy=True)
 
-    # Done TODO: implement any missing fields, as a database migration using Flask-Migrate
+    def __repr__(self):
+        return f"{self.id}. {self.name}"
 
+    # Done TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Show(db.Model):
     __tabelanem__ = "Show"
@@ -78,13 +81,11 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey("Artist.id"))
     start_time = db.Column(db.String)
 
-
 # DONE TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 # ----------------------------------------------------------------------------#
 # Filters.
 # ----------------------------------------------------------------------------#
-
 
 def format_datetime(value, format="medium"):
     date = dateutil.parser.parse(value)
@@ -94,22 +95,18 @@ def format_datetime(value, format="medium"):
         format = "EE MM, dd, y h:mma"
     return babel.dates.format_datetime(date, format, locale="en")
 
-
 app.jinja_env.filters["datetime"] = format_datetime
 
 # ----------------------------------------------------------------------------#
 # Controllers.
 # ----------------------------------------------------------------------------#
 
-
 @app.route("/")
 def index():
     return render_template("pages/home.html")
 
-
 #  Venues
 #  ----------------------------------------------------------------
-
 
 @app.route("/venues")
 def venues():
@@ -143,18 +140,27 @@ def venues():
 
 @app.route("/venues/search", methods=["POST"])
 def search_venues():
-    # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
+    # DONE TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+    # response = {
+    #     "count": 1,
+    #     "data": [
+    #         {
+    #             "id": 2,
+    #             "name": "The Dueling Pianos Bar",
+    #             "num_upcoming_shows": 0,
+    #         }
+    #     ],
+    # }
+    search_term=request.form.get("search_term", "")
+
+    count = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).count(),
+    data = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).all()
+
     response = {
-        "count": 1,
-        "data": [
-            {
-                "id": 2,
-                "name": "The Dueling Pianos Bar",
-                "num_upcoming_shows": 0,
-            }
-        ],
+        "count": count,
+        "data": data
     }
     return render_template(
         "pages/search_venues.html",
@@ -266,7 +272,6 @@ def create_venue_form():
     form = VenueForm()
     return render_template("forms/new_venue.html", form=form)
 
-
 @app.route("/venues/create", methods=["POST"])
 def create_venue_submission():
     # DONE TODO: insert form data as a new Venue record in the db, instead
@@ -304,7 +309,6 @@ def create_venue_submission():
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template("pages/home.html")
 
-
 @app.route("/venues/<venue_id>/delete", methods=["DELETE"])
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
@@ -323,12 +327,12 @@ def delete_venue(venue_id):
     # clicking that button delete it from the db then redirect the user to the homepage
     return redirect(url_for('index'))
 
-
 #  Artists
 #  ----------------------------------------------------------------
+
 @app.route("/artists")
 def artists():
-    # TODO: replace with real data returned from querying the database
+    # DONE TODO: replace with real data returned from querying the database
     # data = [
     #     {
     #         "id": 4,
@@ -348,28 +352,37 @@ def artists():
 
     return render_template("pages/artists.html", artists=artists)
 
-
 @app.route("/artists/search", methods=["POST"])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+    # DONE TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
+    # response = {
+    #     "count": 1,
+    #     "data": [
+    #         {
+    #             "id": 4,
+    #             "name": "Guns N Petals",
+    #             "num_upcoming_shows": 0,
+    #         }
+    #     ],
+    # }
+    search_term=request.form.get("search_term", "")
+
+    count = Artist.query.filter(Artist.name.ilike(f"%{search_term}%")).count(),
+    data = Artist.query.filter(Artist.name.ilike(f"%{search_term}%")).all()
+
     response = {
-        "count": 1,
-        "data": [
-            {
-                "id": 4,
-                "name": "Guns N Petals",
-                "num_upcoming_shows": 0,
-            }
-        ],
+        "count": count,
+        "data": data
     }
+
+
     return render_template(
         "pages/search_artists.html",
         results=response,
         search_term=request.form.get("search_term", ""),
     )
-
 
 @app.route("/artists/<int:artist_id>")
 def show_artist(artist_id):
@@ -460,7 +473,6 @@ def show_artist(artist_id):
 
     return render_template("pages/show_artist.html", artist=artist)
 
-
 #  Update
 #  ----------------------------------------------------------------
 @app.route("/artists/<int:artist_id>/edit", methods=["GET"])
@@ -482,7 +494,6 @@ def edit_artist(artist_id):
     artist = Artist.query.get(artist_id)
     # TODO: populate form with fields from artist with ID <artist_id>
     return render_template("forms/edit_artist.html", form=form, artist=artist)
-
 
 @app.route("/artists/<int:artist_id>/edit", methods=["POST"])
 def edit_artist_submission(artist_id):
@@ -512,24 +523,20 @@ def edit_venue(venue_id):
     # TODO: populate form with values from venue with ID <venue_id>
     return render_template("forms/edit_venue.html", form=form, venue=venue)
 
-
 @app.route("/venues/<int:venue_id>/edit", methods=["POST"])
 def edit_venue_submission(venue_id):
     # TODO: take values from the form submitted, and update existing
     # venue record with ID <venue_id> using the new attributes
     return redirect(url_for("show_venue", venue_id=venue_id))
 
-
 #  Create Artist
 #  ----------------------------------------------------------------
-
 
 @app.route("/artists/create", methods=["GET"])
 def create_artist_form():
     form = ArtistForm()
 
     return render_template("forms/new_artist.html", form=form)
-
 
 @app.route("/artists/create", methods=["POST"])
 def create_artist_submission():

@@ -80,20 +80,8 @@
 </div>
 <div>
     <form class="form" method="POST" action="/venues/{{venue.id}}/delete">
-        <a href=""></a>
+        <a type="submit"href="">Delete</a>
     </form>
 </div>
 
-<ul class="shows">
-{% for show in shows %}
-    <li class="items">
-        {{ show.id }}
-        {{ show.start_time }}
-        {{ show.artist.id }}
-        {{ show.artist.name }}
-    </li>
-{% endfor %}
-</ul>
-
 {% endblock %}
-
