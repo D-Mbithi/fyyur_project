@@ -233,12 +233,12 @@ def show_venue(venue_id):
             }
             upcoming_shows.append(item)
 
-
+    genres = venue.genres[1:-2].split(',')
 
     data = {
         "id": venue.id,
         "name": venue.name,
-        "genres": venue.genres,
+        "genres": genres,
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
@@ -513,12 +513,12 @@ def show_artist(artist_id):
             }
             upcoming_shows.append(item)
 
-
+    genres = artist.genres[1:-2].split(',')
 
     data = {
         "id": artist.id,
         "name": artist.name,
-        "genres": artist.genres,
+        "genres": genres,
         "city": artist.city,
         "state": artist.state,
         "phone": artist.phone,
