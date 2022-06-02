@@ -11,9 +11,10 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from sqlalchemy import func
 from forms import *
 from flask_migrate import Migrate
-from .models import Artist, Show, Venue
+from datetime import datetime
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -27,6 +28,7 @@ migrate = Migrate(app, db)
 
 # DONE TODO: connect to a local postgresql database
 
+from models import *
 
 # DONE TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -59,31 +61,52 @@ def index():
 def venues():
     # DONE TODO: replace with real venues data.
     #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-    data=[{
-      "city": "San Francisco",
-      "state": "CA",
-      "venues": [{
-        "id": 1,
-        "name": "The Musical Hop",
-        "num_upcoming_shows": 0,
-      }, {
-        "id": 3,
-        "name": "Park Square Live Music & Coffee",
-        "num_upcoming_shows": 1,
-      }]
-    }, {
-      "city": "New York",
-      "state": "NY",
-      "venues": [{
-        "id": 2,
-        "name": "The Dueling Pianos Bar",
-        "num_upcoming_shows": 0,
-      }]
-    }]
+    query = Show.query.with_entities(Venue.city, Venue.state).group_by(Venue.city, Venue.state)
 
-    venues = Venue.query.all()
+    results = []
+    for city, state in query:
+        data = {}
+        venue_loc = []
+        data['city'] = city
+        data['state'] = state
+        data['venues']  = venue_loc
+        venues = Venue.query.filter_by(state=state).filter_by(city=city).all()
 
-    return render_template("pages/venues.html", areas=data)
+        for venue in venues:
+            show_count = Show.query.filter_by(venue_id=venue.id).count()
+            venue_data = {
+                'id': venue.id,
+                'name': venue.name,
+                "num_upcoming_shows": show_count
+            }
+
+            venue_loc.append(venue_data)
+
+        results.append(data)
+
+    # data=[{
+    #   "city": "San Francisco",
+    #   "state": "CA",
+    #   "venues": [{
+    #     "id": 1,
+    #     "name": "The Musical Hop",
+    #     "num_upcoming_shows": 0,
+    #   }, {
+    #     "id": 3,
+    #     "name": "Park Square Live Music & Coffee",
+    #     "num_upcoming_shows": 1,
+    #   }]
+    # }, {
+    #   "city": "New York",
+    #   "state": "NY",
+    #   "venues": [{
+    #     "id": 2,
+    #     "name": "The Dueling Pianos Bar",
+    #     "num_upcoming_shows": 0,
+    #       }]
+    # }]
+
+    return render_template("pages/venues.html", areas=results)
 
 @app.route("/venues/search", methods=["POST"])
 def search_venues():
